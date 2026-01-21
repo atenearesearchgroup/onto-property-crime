@@ -162,7 +162,8 @@ def analizarAtestado(atestado_llm: AtestadoLLM, name: str, laws: List[str], trav
         llms = [os.getenv("DEFAULT_LLM")] #["openai/gpt-5.2-chat"]
 
         llm_model = llms[0] # Modelo definido en el código original de pago: gpt-4.1-mini
-        print(f"\n📌 -LLM_model: {llm_model}")
+        ak = os.getenv("OPENROUTER_API_KEY")
+        print(f"\n📌 -LLM_model: {llm_model} api_key:{ak}")
 
         analisis_atestados = {
             "nombre_grafo": name,

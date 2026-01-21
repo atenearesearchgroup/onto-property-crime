@@ -22,8 +22,7 @@ services:
       # 4. Mapear tu JAR personalizado a la carpeta de plugins de Neo4j
       - ./backend/plugins/Neo4jOntologyLibrary-1.28-JSS.jar:/plugins/Neo4jOntologyLibrary-1.28-JSS.jar
       - ./backend/plugins/neosemantics-5.26.0.jar:/plugins/neosemantics-5.26.0.jar
-      
-      
+          
   backend:
     build: ./backend
     ports:
@@ -31,10 +30,23 @@ services:
     env_file:
       - ./backend/.env  
     environment:
+      # NEO4J PARAMETERS
       - NEO4J_URI=bolt://database:7687
       - NEO4J_USER=neo4j
       - NEO4J_PASSWORD=password123
       - PYTHONUNBUFFERED=1  # Permite ver los logs en tiempo real
+      
+      # LLM PARAMETERS
+      - OPENROUTER_URL=https://openrouter.ai/api/v1
+      - DEFAULT_LLM=openai/gpt-5.2-chat
+
+        # ONTOLOGY PARAMETERS
+      - ROOT_CLASS=Report
+      - CLASSES_TO_ANALYSE=["PropertyCrimeReport"]
+      - NS_URI=http://www.semanticweb.org/fjnavarrete/ontologies/2022/0/delito_contra_patrimonio#
+      - PREFIX=ns0
+      - ONTOLOGY=SCPO_Extended_Ontology_V01R08_AT08Q.owl
+      - ONTOLOGY_PATH=/app
     volumes:
       - ./backend:/app      # Mapea tu código local al WORKDIR del contenedor
     # Ejemplo si usas FastAPI con Uvicorn:

@@ -82,7 +82,7 @@ def get_ontology_traversal():
                 global_traversal.create_sample_ontology()
         else:
             # Opción 2: Usar ontología de ejemplo
-            print("📝 Usando ontología de ejemplo")
+            print(f"📝 Ontología no cargada: {ontology_file_path}")
             global_traversal.create_sample_ontology()
     
     return global_traversal

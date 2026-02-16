@@ -21,7 +21,7 @@ Sigue estos pasos para desplegar el entorno desde cero:
 
 ### 2. Clonar el repositorio
 ```bash
-git clone [https://github.com/atenearesearchgroup/onto-property-crime/ReportGraphQualifier.git](https://github.com/atenearesearchgroup/onto-property-crime.git)
+git clone https://github.com/atenearesearchgroup/onto-property-crime.git
 
 cd ReportGraphQualifier
 

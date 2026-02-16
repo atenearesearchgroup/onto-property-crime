@@ -1,12 +1,49 @@
 import './Atestados.css';
 import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
-import { FiUpload, FiTrash2, FiDownload, FiLoader, FiSearch, FiDatabase, FiShare2, FiFileText } from 'react-icons/fi';
+import { FiUpload, FiTrash2, FiDownload, FiLoader, FiSearch, FiDatabase, FiShare2, FiFileText, FiCheck, 
+  FiRefreshCw } from 'react-icons/fi';
+import { MdExtension } from 'react-icons/md';
 import docs from '../../assets/docs.png';
 import noArchivo from '../../assets/noArchivo.png';
-// O si instalas lucide-react (muy recomendado para grafos):
-// import { LuTreeGraph } from "react-icons/lu";
 import { useApp } from '../../AppContext';
+
+// --- COMPONENTE STEPPER (OPCIÓN 1) ---
+const Stepper = ({ currentStep, t }) => {
+  const steps = [
+    { id: 1, icon: <FiUpload />, label: t('atestados.steps.step1') },
+    { id: 2, icon: <FiSearch />, label: t('atestados.steps.step2') },
+    { id: 3, icon: <FiDownload />, label: t('atestados.steps.step3') },
+    { id: 4, icon: <MdExtension />, label: t('atestados.steps.step4') },
+    { id: 5, icon: <FiDatabase />, label: t('atestados.steps.step5') },
+  ];
+
+  return (
+    <div className="stepper-container">
+      {steps.map((step, index) => {
+        const isCompleted = currentStep > step.id;
+        const isActive = currentStep === step.id;
+        
+        return (
+          <div key={step.id} className={`step-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}>
+            {/* Círculo del paso */}
+            <div className="step-circle">
+              {isCompleted ? <FiCheck className="step-check-icon" /> : step.icon}
+            </div>
+            
+            {/* Etiqueta */}
+            <span className="step-label">{step.label}</span>
+
+            {/* Línea conectora (excepto en el último elemento) */}
+            {index !== steps.length - 1 && (
+              <div className={`step-line ${currentStep > step.id ? 'line-completed' : ''}`}></div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 
 export default function Atestados() {
   const [file, setFile] = useState(null);
@@ -16,67 +53,68 @@ export default function Atestados() {
   const [error, setError] = useState(null);
   const overlayRef = useRef(null);
   const fileInputRef = useRef(null);
-  const [inferring, setInferring] = useState(false); // Nuevo estado para la inferencia
+  const [inferring, setInferring] = useState(false);
   const { t } = useApp();
 
   const jsonFileInputRef = useRef(null);
 
-  // Dentro de Atestados()
-const [importing, setImporting] = useState(false);
-const [importSuccess, setImportSuccess] = useState(null); // Almacenará el mensaje detallado
-const [ttlBlob, setTtlBlob] = useState(null);
+  const [importing, setImporting] = useState(false);
+  const [importSuccess, setImportSuccess] = useState(null); 
+  const [ttlBlob, setTtlBlob] = useState(null);
+  const [taskId, setTaskId] = useState(null);
 
-const [taskId, setTaskId] = useState(null);
-
-// Estado para controlar el historial de acciones
-// const [actionHistory, setActionHistory] = useState({
-//   procesar: { status: 'esperando', msg: '-' },
-//   descargar: { status: 'esperando', msg: '-' },
-//   inferir: { status: 'esperando', msg: '-' },
-//   neo4j: { status: 'esperando', msg: '-' }
-// });
-const [actionHistory, setActionHistory] = useState({
+  const [actionHistory, setActionHistory] = useState({
     procesar: { status: 'esperando', msg: t('atestados.messages.waiting') },
     inferir: { status: 'esperando', msg: t('atestados.messages.waiting') },
     descargar: { status: 'esperando', msg: t('atestados.messages.waiting') },
     neo4j: { status: 'esperando', msg: t('atestados.messages.waiting') }
   });
 
-// Estado para almacenar los JSON específicos que queremos mostrar
-const [debugJson, setDebugJson] = useState(null);
-// const StatusBadge = ({ status }) => {
-//   switch (status) {
-//     case 'ok': return <span style={{ color: '#28a745' }}>● Satisfactorio</span>;
-//     case 'error': return <span style={{ color: '#dc3545' }}>● Error</span>;
-//     default: return <span style={{ color: '#6c757d' }}>○ Pendiente</span>;
-//   }
-// };
-const StatusBadge = ({ status }) => {
-  const { t } = useApp();
-  const styles = {
-    ok: { color: '#28a745', fontWeight: 'bold' },
-    error: { color: '#dc3545', fontWeight: 'bold' },
-    esperando: { color: '#6c757d' }
+  const [debugJson, setDebugJson] = useState(null);
+
+  // --- DEFINICIÓN DE PASOS CON ICONOS ---
+  const steps = [
+    { id: 1, icon: <FiUpload />, label: t('atestados.steps.step1') },
+    { id: 2, icon: <FiSearch />, label: t('atestados.steps.step2') },
+    { id: 3, icon: <FiDownload />, label: t('atestados.steps.step3') },
+    { id: 4, icon: <MdExtension />, label: t('atestados.steps.step4') }, // Icono Puzzle
+    { id: 5, icon: <FiDatabase />, label: t('atestados.steps.step5') },
+  ];
+
+  // Lógica para determinar el paso actual automáticamente
+  const getCurrentStep = () => {
+    if (actionHistory.neo4j.status === 'ok') return 6; // Todo completado
+    if (ttlBlob) return 5; // Listo para importar (Paso 4 hecho)
+    // El paso 3 es descarga opcional, pero si tenemos resultado, estamos técnicamente listos para inferir (paso 4)
+    // Visualmente, si hay resultado, marcamos que hemos pasado el 2.
+    if (resultado) return 3; 
+    if (file) return 2; // Archivo seleccionado, listo para procesar
+    return 1; // Inicio
   };
-  // Mapeamos los estados a las llaves del JSON
-  const labelKey = status === 'ok' ? 'common.status.ok' : 
-                   status === 'error' ? 'common.status.error' : 
-                   'common.status.waiting';
 
-  return <span style={styles[status] || styles.esperando}>{t(labelKey)}</span>;
-};
+  const activeStep = getCurrentStep();
 
-const ARTICULOS_DEFAULT = [
-  "Article240_1", "Article242_1", "Article234_1", "Article234_2", 
-  "Article234_3", "Article235_1", "Article235_2", "Article236_1", 
-  "Article236_2", "Article240_2", "Article241_1", "Article241_4", 
-  "Article242_2", "Article242_3", "Article242_4"
-];
+  const StatusBadge = ({ status }) => {
+    const styles = {
+      ok: { color: '#28a745', fontWeight: 'bold' },
+      error: { color: '#dc3545', fontWeight: 'bold' },
+      esperando: { color: '#6c757d' }
+    };
+    const labelKey = status === 'ok' ? 'common.status.ok' : 
+                     status === 'error' ? 'common.status.error' : 
+                     'common.status.waiting';
 
-// // Referencia para limpiar el intervalo de polling
-//   const pollingRef = useRef(null);
+    return <span style={styles[status] || styles.esperando}>{t(labelKey)}</span>;
+  };
 
-  // Manejo de accesibilidad para el popup de carga
+  const ARTICULOS_DEFAULT = [
+    "Article240_1", "Article242_1", "Article234_1", "Article234_2", 
+    "Article234_3", "Article235_1", "Article235_2", "Article236_1", 
+    "Article236_2", "Article240_2", "Article241_1", "Article241_4", 
+    "Article242_2", "Article242_3", "Article242_4"
+  ];
+
+  // Manejo de accesibilidad para el popup
   useEffect(() => {
     if (!popup) return;
     const overlay = overlayRef.current;
@@ -87,61 +125,51 @@ const ARTICULOS_DEFAULT = [
         e.preventDefault();
         setPopup(false);
       }
-      
     };
     overlay?.addEventListener('keydown', handleKey);
-    // return () => overlay?.removeEventListener('keydown', handleKey);
     return () => { 
       overlay?.removeEventListener('keydown', handleKey); 
     };
   }, [popup]);
 
   // --- EFECTO DE POLLING ---
-  // Este efecto se dispara en cuanto setTaskId tiene un valor
   useEffect(() => {
     let intervalId;
-
     if (taskId) {
       intervalId = setInterval(async () => {
         try {
           console.log("Consultando estado de la tarea:", taskId);
           const response = await axios.get(`http://localhost:8000/check_task/${taskId}`);
           const { status, result } = response.data;
-            if (status === 'completado') {
-              clearInterval(intervalId);
-              setTaskId(null); // Detenemos el polling
-              setLoading(false);
-              setPopup(false);
-              setResultado(result.grafo_json);
-              setDebugJson(result.grafo_json);
-              if (result) {
-                // 1. Extraer el nombre del archivo del atributo específico
-                const fileName = result.archivo_procesado || 'resultado_analisis.json';
-                
-                // 2. Crear un Blob con el contenido JSON
-                const jsonString = JSON.stringify(result.grafo_json, null, 2);
-                const blob = new Blob([jsonString], { type: 'application/json' });
-                
-                // 3. Crear un link temporal y disparar el clic
-                const url = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = fileName.endsWith('.json') ? fileName : `${fileName}.json`;
-                
-                document.body.appendChild(link);
-                link.click();
-                
-                // 4. Limpieza
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(url);
-              }
+          
+          if (status === 'completado') {
+            clearInterval(intervalId);
+            setTaskId(null);
+            setLoading(false);
+            setPopup(false);
+            setResultado(result.grafo_json);
+            setDebugJson(result.grafo_json);
+            
+            if (result) {
+              const fileName = result.archivo_procesado || 'resultado_analisis.json';
+              const jsonString = JSON.stringify(result.grafo_json, null, 2);
+              const blob = new Blob([jsonString], { type: 'application/json' });
+              const url = window.URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = fileName.endsWith('.json') ? fileName : `${fileName}.json`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              window.URL.revokeObjectURL(url);
+            }
+            
             setActionHistory(prev => ({ 
               ...prev, 
               procesar: { status: 'ok', msgKey: 'atestados.msg.success' } 
             }));
           } 
           else if (status === 'error') {
-            console.log("La tarea da error...");
             clearInterval(intervalId);
             setTaskId(null);
             setLoading(false);
@@ -152,14 +180,7 @@ const ARTICULOS_DEFAULT = [
             }));
           }
           else {
-            // AQUÍ EL "ELSE": El proceso sigue pendiente (status === 'procesando' o similar)
-            // No cerramos el popup, solo nos aseguramos de que el estado visual sea correcto
             setPopup(true);
-            console.log("La tarea sigue en curso...");
-            // setActionHistory(prev => ({ 
-            //   ...prev, 
-            //   procesar: { status: 'procesando', msgKey: 'atestados.msg.processing' } 
-            // }));
           }
         } catch (err) {
           console.error("Error consultando estado:", err);
@@ -168,24 +189,18 @@ const ARTICULOS_DEFAULT = [
           setLoading(false);
           setPopup(false);
         }
-      }, 3000); // 3 segundos
+      }, 3000);
     }
-      // else 
-      //   setPopup(true);  
-
-    // Limpieza al desmontar o cambiar taskId
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
   }, [taskId]);
 
-
-
   const handleChange = (e) => {
     const selected = e.target.files[0];
     if (selected) {
       setFile(selected);
-      setResultado(null); // Limpiar resultado previo al cambiar archivo
+      setResultado(null);
       setTtlBlob(null);
       setDebugJson(null);
       setActionHistory({
@@ -207,15 +222,8 @@ const ARTICULOS_DEFAULT = [
 
   const handleUpload = async () => {
     if (!file) return;
-
-    // setLoading(true);
-    // setPopup(true);
-    // setError(null);
-
-    
     setLoading(true);
-    setPopup(true); // <-- Forzamos la apertura aquí
-    // setTaskId(null); 
+    setPopup(true);
     setError(null);
     
     setActionHistory(prev => ({ 
@@ -227,47 +235,33 @@ const ARTICULOS_DEFAULT = [
     formData.append('file', file);
 
     try {
-      // const res = await axios.post("http://localhost:8000/procesarG/", formData);
       const response = await axios.post('http://localhost:8000/procesarG/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      // 2. Si el backend nos da un ID, empezamos a preguntar
       if (response.data.task_id) {
-        // 3. Guardamos el ID, esto activará el useEffect de arriba automáticamente
         setTaskId(response.data.task_id);
       } else {
         throw new Error("No se recibió task_id");
       }
-
-      // setResultado(response.data);
-      // setActionHistory(prev => ({ ...prev, procesar: { status: 'ok', msg: t('atestados.messages.success') }}));
-      // setDebugJson(response.data); // Guardamos para mostrar abajo
     } catch (err) {
       console.error(err);
-      // setError("Error al procesar el documento. Inténtalo de nuevo.");
       setActionHistory(prev => ({ ...prev, procesar: { status: 'error', msg: err.message }}));
-    } finally {
-      // setLoading(false);
-      // setPopup(false);
+      setLoading(false);
+      setPopup(false);
     }
   };
 
-  // --- Función para procesar el JSON cargado manualmente ---
   const handleManualJsonUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     setFile(file);
-
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
         const parsedJson = JSON.parse(event.target.result);
-        setDebugJson(parsedJson); // Guardamos el JSON cargado
+        setDebugJson(parsedJson);
         setResultado(parsedJson);
-        console.log(parsedJson)
-        // Una vez cargado, lanzamos la inferencia automáticamente
         descargarRDF(parsedJson);
       } catch (err) {
         alert("Error: El archivo seleccionado no es un JSON válido.");
@@ -276,32 +270,24 @@ const ARTICULOS_DEFAULT = [
     reader.readAsText(file);
   };
 
-  // --- Función unificada de Inferencia (RDF) ---
   const handleGenRDFClick = () => {
     if (resultado) {
-      // Caso A: Ya tenemos el resultado en memoria
       descargarRDF(resultado);
     } else {
-      // Caso B: No hay resultado, solicitamos el fichero
       jsonFileInputRef.current.click();
     }
   };
 
   const handleInferirClick = () => {
     if (resultado) {
-      // Caso A: Ya tenemos el resultado en memoria
       handleInferencia(resultado);
     } else {
-      // Caso B: No hay resultado, solicitamos el fichero
       jsonFileInputRef.current.click();
     }
   };
 
-  
-
   const descargarRDF = async (json) => {
     try {
-      
       const response = await axios.post("http://localhost:8000/generar_rdfG/", json, {
         responseType: 'blob'   
       });
@@ -313,11 +299,10 @@ const ARTICULOS_DEFAULT = [
       link.click();
       link.remove();
       setActionHistory(prev => ({ ...prev, descargar: { status: 'ok', msg: t('atestados.messages.success') }}));
-      setDebugJson(null); // Limpiamos el JSON según tu instrucción
+      setDebugJson(null);
     } catch (err) {
       console.error("Error al descargar el RDF:", err);
       setActionHistory(prev => ({ ...prev, descargar: { status: 'error', msg: t('atestados.messages.error') }}));
-      // alert("No se pudo descargar el archivo RDF.");
     }
   };
 
@@ -325,18 +310,13 @@ const ARTICULOS_DEFAULT = [
     if (!resultado) return;
     setInferring(true);
     setError(null);
-
     try {
-        // 1. Petición con responseType blob
         const response = await axios.post("http://localhost:8000/inferir_grafo_ttls/", json, {
         responseType: 'blob'   
         });
-
-        // 2. Guardar en el estado de React
         const blob = new Blob([response.data], { type: 'text/turtle' });
         setTtlBlob(blob);
 
-        // 3. Descarga automática para el usuario
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
@@ -345,66 +325,52 @@ const ARTICULOS_DEFAULT = [
         link.click();
         link.remove();
         setActionHistory(prev => ({ ...prev, inferir: { status: 'ok', msg: t('atestados.messages.success') }}));
-        setDebugJson(null); // Limpiamos el JSON según tu instrucción
-        
-        // Si el WS devuelve un nuevo JSON o confirmación, lo actualizamos
-        // Opcional: setResultado(response.data); 
-        // alert("Inferencia completada con éxito.");
+        setDebugJson(null);
     } catch (err) {
         console.error("Error en la inferencia:", err);
         setActionHistory(prev => ({ ...prev, inferir: { status: 'error', msg: t('atestados.messages.error') }}));
-        // alert("No se pudo descargar el archivo TTL.");
     } finally {
         setInferring(false);
     }
-
-  
-};
+  };
 
   const handleImportNeo4j = async () => {
-  if (!ttlBlob) return;
-  setImporting(true);
-  setImportSuccess(null);
-  try {
-    // Transformamos el Blob guardado en memoria a un objeto "File" (similar a UploadFile)
-    const fileToUpload = new File([ttlBlob], "grafo_importar.ttl", { type: "text/turtle" });
-    
-    const formData = new FormData();
-    const file_name = file.name.split('.').slice(0, -1).join('.')
+    if (!ttlBlob) return;
+    setImporting(true);
+    setImportSuccess(null);
+    try {
+      const fileToUpload = new File([ttlBlob], "grafo_importar.ttl", { type: "text/turtle" });
+      const formData = new FormData();
+      const file_name = file.name.split('.').slice(0, -1).join('.')
 
-    formData.append('file', fileToUpload);
-    formData.append('root_name', file_name);
-    formData.append('articles', JSON.stringify(ARTICULOS_DEFAULT));
-    formData.append('llm_type', "ttls");
+      formData.append('file', fileToUpload);
+      formData.append('root_name', file_name);
+      formData.append('articles', JSON.stringify(ARTICULOS_DEFAULT));
+      formData.append('llm_type', "ttls");
 
-    const response = await axios.post('http://localhost:8000/cargaNeo4j/', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const response = await axios.post('http://localhost:8000/cargaNeo4j/', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
 
-    console.log(response.data)
-    if (response.data.status === "success") {
-      // setImportSuccess(`Éxito: Se han importado ${ARTICULOS_DEFAULT.length} artículos.`);
-      setActionHistory(prev => ({ ...prev, neo4j: { status: 'ok', msg: response.data.mensaje }}));
-      setDebugJson(response.data); // Guardamos para mostrar abajo
+      if (response.data.status === "success") {
+        setActionHistory(prev => ({ ...prev, neo4j: { status: 'ok', msg: response.data.mensaje }}));
+        setDebugJson(response.data);
+      } else {
+        setActionHistory(prev => ({ ...prev, neo4j: { status: 'error', msg: response.data.mensaje }}));
+      }
+    } catch (err) {
+      console.error("Error en la importación:", err);
+      setActionHistory(prev => ({ ...prev, neo4j: { status: 'error', msg: 'Error de conexión' }}));
+    } finally {
+      setImporting(false);
     }
-   else{
-      setActionHistory(prev => ({ ...prev, neo4j: { status: 'error', msg: response.data.mensaje }}));
-   }
-  } catch (err) {
-    console.error("Error en la inferencia:", err);
-    setActionHistory(prev => ({ ...prev, neo4j: { status: 'error', msg: 'response.data.mensaje' }}));
-    // setError("Error en Neo4j: " + (err.response?.data?.detail || err.message));
-  } finally {
-    setImporting(false);
-  }
-};
-
-  
+  };
 
   return (
     <div className="atestados-wrapper">
       <h1>{t('atestados.principalTitle')}</h1>
       <p className="subtitulo">{t('atestados.subtitle')}</p>
+      
       <input 
         type="file" 
         ref={jsonFileInputRef} 
@@ -413,13 +379,29 @@ const ARTICULOS_DEFAULT = [
         onChange={handleManualJsonUpload}
       />
 
-      {/* Indicador visual de pasos */}
-      <div className="pasos">
-        <div className="paso"><span>1</span> {t('atestados.steps.step1')}</div>
-        <div className="paso"><span>2</span> {t('atestados.steps.step2')}</div>
-        <div className="paso"><span>3</span> {t('atestados.steps.step3')}</div>
-        <div className="paso"><span>4</span> {t('atestados.steps.step4')}</div>
-        <div className="paso"><span>5</span> {t('atestados.steps.step5')}</div>
+      {/* COMPONENTE STEPPER MODERNO */}
+      {/* <Stepper currentStep={activeStep} t={t} /> */}
+      {/* --- STEPPER CON ICONOS (CORREGIDO) --- */}
+      <div className="pasos-container">
+        {steps.map((step, index) => {
+            const isCompleted = activeStep > step.id;
+            const isActive = activeStep === step.id;
+            
+            return (
+            <div key={step.id} className={`paso-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}>
+                {/* La línea solo aparece ANTES del paso, excepto en el primero */}
+                {index !== 0 && (
+                  <div className={`linea-conectora ${activeStep >= step.id ? 'line-completed' : ''}`}></div>
+                )}
+                
+                <div className="paso-circulo">
+                  {/* Si está completado: Check. Si no: Icono representativo del paso */}
+                  {isCompleted ? <FiCheck /> : step.icon}
+                </div>
+                <div className="paso-etiqueta">{step.label}</div>
+            </div>
+            );
+        })}
       </div>
 
       {/* CONTENEDOR DE BOTONES ALINEADOS HORIZONTALMENTE */}
@@ -449,22 +431,11 @@ const ARTICULOS_DEFAULT = [
           disabled={!file || loading}
           aria-label={t('atestados.btns.process')}
         >
-          {loading ? <FiLoader className="spinner-mini" /> : <FiSearch style={{ marginRight: '8px' }} />}
+          {loading ? <FiRefreshCw className="spinner-mini" /> : <FiRefreshCw className="icon-static" style={{ marginRight: '8px' }} />} 
           2. {t('atestados.btns.process')}
         </button>
 
         {/* BOTÓN 3: DESCARGAR */}
-        {/* <button 
-          className="btn descargar-btn" 
-          onClick={descargarRDF} 
-          disabled={!resultado || loading}
-          aria-label={t('atestados.btns.download')}
-        >
-          <FiDownload style={{ marginRight: '8px' }} />
-          {t('atestados.btns.download')}
-        </button> */}
-
-        {/* BOTÓN MODIFICADO: Siempre habilitado (salvo si está cargando) */}
           <button 
             className="btn descargar-btn" 
             onClick={handleGenRDFClick} 
@@ -475,24 +446,15 @@ const ARTICULOS_DEFAULT = [
            3. {t('atestados.btns.download')} {(!resultado ? '*' : '')}
           </button>
 
-        {/* BOTÓN 4: INFERIR (NUEVO) */}
+        {/* BOTÓN 4: INFERIR */}
         <button 
           className="btn inferir-btn" 
           onClick={handleInferirClick} 
           disabled={!resultado || loading}
         >
-          {inferring ? <FiLoader className="spinner-mini" /> : <FiShare2 style={{ marginRight: '8px' }} />}
+          {inferring ? <FiLoader className="spinner-mini" /> : <MdExtension style={{ marginRight: '8px' }} />}
           4. {t('atestados.btns.infer')}
         </button>
-
-        {/* <button 
-          className="btn inferir-btn" 
-          onClick={handleInferirClick} 
-          disabled={loading}
-        >
-          {inferring ? <FiLoader className="spinner-mini" /> : <FiShare2 style={{ marginRight: '8px' }} />}
-          {t('atestados.btns.infer')}
-        </button> */}
 
         {/* BOTÓN 5: IMPORTAR A NEO4J */}
         <button 
@@ -519,10 +481,9 @@ const ARTICULOS_DEFAULT = [
           </div>
         </div>
 
-        
         <div className="resultado-container">
           <div className="resultado-card">
-            <h3>Panel de Control de Procesos</h3>
+            <h3>{t('atestados.panel.title')}</h3>
             
             <table className="status-table">
               <thead>
@@ -556,7 +517,6 @@ const ARTICULOS_DEFAULT = [
               </tbody>
             </table>
 
-            {/* Sección de detalles JSON filtrada */}
             <details className="json-details" style={{ marginTop: '20px' }}>
               <summary>{t('atestados.debug.title')}</summary>
               <div className="json-viewer">
@@ -571,7 +531,6 @@ const ARTICULOS_DEFAULT = [
         </div>
       </div>
 
-      {/* Overlay de carga */}
       {popup && (
         <div className="popup-overlay" ref={overlayRef} tabIndex="-1" role="dialog">
           <div className="popup-loader">

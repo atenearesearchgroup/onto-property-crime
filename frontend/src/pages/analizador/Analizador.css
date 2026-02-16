@@ -29,6 +29,13 @@
     align-items: center;
     transition: background-color 0.3s ease;
   }
+
+  .btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed !important;;
+  box-shadow: none !important;
+  filter: grayscale(0.5);
+}
   
   .archivo-btn {
     background-color: #1976d2;
@@ -44,6 +51,20 @@
     background-color: #12569d;
   }
   
+  .referenciar-btn {
+    background-color: #de2e03;
+    color: white;
+  }
+
+  .referenciar-btn:focus {
+    outline: 2px solid #de2e03;
+    outline-offset: 2px;
+  }
+  
+  .referenciar-btn:hover {
+    background-color: #d95939;
+  }
+
   .analizar-btn {
     background-color: #388e3c;
     color: white;
@@ -274,4 +295,57 @@
     gap: 0.5rem;
   }
 }
-  
+
+
+/* --- NUEVO STEPPER CENTRADO Y COMPACTO --- */
+.pasos-container {
+  display: flex;
+  justify-content: center; /* Centra todo el grupo */
+  align-items: flex-start;
+  margin: 0 auto 2.5rem auto;
+  max-width: 1200px; /* Controla qué tan juntos están los pasos */
+  width: 100%;
+}
+
+.paso-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1; /* Distribuye espacio igualitario entre ellos */
+}
+
+/* La línea nace en el centro del paso anterior y muere en el actual */
+.linea-conectora {
+  position: absolute;
+  top: 15px; /* Ajustar según altura del círculo */
+  left: -50%;
+  width: 100%;
+  height: 2px;
+  background-color: #ddd;
+  z-index: 1;
+}
+
+.paso-circulo {
+  background: #1976d2;
+  color: white;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 0.9rem;
+  z-index: 2; /* Por encima de la línea */
+  position: relative;
+}
+
+.paso-etiqueta {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #555;
+  text-align: center;
+}
+

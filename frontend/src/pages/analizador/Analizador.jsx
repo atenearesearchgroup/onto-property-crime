@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 import axios from 'axios';
 import noArchivo from '../../assets/noArchivo.png';
 import docs from '../../assets/docs.png';
-import { FiUpload, FiSearch, FiRotateCw, FiDownload, FiFileText, FiLoader, FiDatabase, FiShare2, FiTrash2  } from 'react-icons/fi';
+import { FiUpload, FiSearch, FiRotateCw, FiDownload, FiFileText, FiLoader, FiDatabase, FiShare2, FiTrash2, FiCheck  } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../AppContext';
 
@@ -33,6 +33,33 @@ export default function Analizador() {
   const fileInputRef = useRef(null);
 
   const navigate = useNavigate();
+
+  // const [actionHistory, setActionHistory] = useState({
+  //   referencias: { status: 'esperando'},
+  //   resumen: { status: 'esperando' },
+  //   resultados: { status: 'esperando' }
+  // });
+
+  // --- DEFINICIÓN DE PASOS CON ICONOS ---
+  const steps = [
+    { id: 1, icon: <FiUpload />, label: t('analizador.steps.step1') },
+    { id: 2, icon: <FiDownload />, label: t('analizador.steps.step2') },
+    { id: 3, icon: <FiSearch />, label: t('analizador.steps.step3') },
+    { id: 4, icon: <FiRotateCw />, label: t('analizador.steps.step4') }, // Icono Puzzle
+  ];
+
+  // Lógica para determinar el paso actual automáticamente
+  const getCurrentStep = () => {
+    if (actionStatus.resultado.status === 'ok') return 5; // Todo completado
+    if (actionStatus.resumen.status === 'ok') return 4; // Listo para importar (Paso 4 hecho)
+    if (actionStatus.referencias.status === 'ok') return 3; 
+    if (file) return 2; // Archivo seleccionado, listo para procesar
+    return 1; // Inicio
+  };
+
+  const activeStep = getCurrentStep();
+
+
 
   useEffect(() => {
     if (!popupTexto) return;
@@ -200,11 +227,36 @@ const verResultados = async () => {
       {/* Mostrar errores si existen */}
       {error && <p className="error-mensaje" style={{color: 'red', textAlign:'center'}}>{error}</p>}
 
-      <div className="pasos">
+      {/* <div className="pasos">
         <div className="paso" tabIndex="0"><span>1</span>{t('analizador.steps.step1')}</div>
         <div className="paso" tabIndex="0"><span>2</span>{t('analizador.steps.step2')}</div>
         <div className="paso" tabIndex="0"><span>3</span>{t('analizador.steps.step3')}</div>
         <div className="paso" tabIndex="0"><span>4</span> {t('analizador.steps.step4')}</div>
+      </div> */}
+
+      {/* COMPONENTE STEPPER MODERNO */}
+      {/* <Stepper currentStep={activeStep} t={t} /> */}
+      {/* --- STEPPER CON ICONOS (CORREGIDO) --- */}
+      <div className="pasos-container">
+        {steps.map((step, index) => {
+            const isCompleted = activeStep > step.id;
+            const isActive = activeStep === step.id;
+            
+            return (
+            <div key={step.id} className={`paso-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}>
+                {/* La línea solo aparece ANTES del paso, excepto en el primero */}
+                {index !== 0 && (
+                  <div className={`linea-conectora ${activeStep >= step.id ? 'line-completed' : ''}`}></div>
+                )}
+                
+                <div className="paso-circulo">
+                  {/* Si está completado: Check. Si no: Icono representativo del paso */}
+                  {isCompleted ? <FiCheck /> : step.icon}
+                </div>
+                <div className="paso-etiqueta">{step.label}</div>
+            </div>
+            );
+        })}
       </div>
 
       <div className="analizador-formulario">

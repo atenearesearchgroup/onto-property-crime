@@ -1,10 +1,10 @@
 {
   "es": {
     "home": {
-      "title": "Calificador de atestados gráfico",
-      "description": "Herramienta jurídica de apoyo que procesa atestados y grafos RDF para calificar automáticamente artículos jurídicos aplicables.",
+      "title": "Herramienta de apoyo jurídico basada en ontología para la clasificación de informes policiales sobre delitos contra la propiedad",
+      "description": "Apoyo a jueces y fiscales con clasificaciones jurídicas explicables",
       "btn_process": "Procesamiento de atestado con IA",
-      "btn_visualize": "Visualización de resúmenes y resultados"
+      "btn_visualize": "Resumen y clasificación del informe"
     },
     "common": {
       "back": "Volver",
@@ -44,7 +44,7 @@
         "select": "Seleccionar archivo",
         "process": "Procesar documento",
         "download": "Descargar RDF",
-        "infer": "Inferir grafo TTLs",
+        "infer": "Aplicar el razonador",
         "import": "Importar a Neo4j",
         "download_tooltip": "Para agilizar las pruebas de generación de grafos y la importación en Neo4j, carga un fichero json de procesamiento"
       },
@@ -60,7 +60,7 @@
         "actions": {
           "process": "Procesar Documento",
           "download": "Descargar Grafo RDF",
-          "infer": "Inferir Grafo TTLS",
+          "infer": "Aplicar el razonador",
           "import": "Importación a Neo4j"
         }
       },
@@ -80,7 +80,7 @@
     },
     "analizador": {
       "title": "Visualización de Resúmenes y Resultados",
-      "subtitle": "Sube un documento (PDF/DOCX) para referenciar el atestado, visualizar resúmenes de grafos y resultados del análisis.",
+      "subtitle": "Cargue un documento (PDF o DOCX) para ver las frases que respaldan los datos extraídos, así como el resumen y la clasificación del informe.",
       "steps": {
         "step1": "Selecciona archivo",
         "step2": "Referencia atestado",
@@ -90,8 +90,8 @@
       "btns": {
         "select": "Seleccionar archivo",
         "references": "Visualizar Fuentes",
-        "summary": "Resumen Atestado",
-        "results": "Resultados Atestado"
+        "summary": "Ver Resumen Atestado",
+        "results": "Ver Resultados Atestado"
       },
       "preview": {
         "no_file": "Sin archivo seleccionado",
@@ -165,7 +165,7 @@
       "adjust": "Ajustar"
     },
 	"footer": {
-      "copyright": "© 2026 Universidad de Málaga"
+      "copyright": "2026 Universidad de Málaga"
     },
 	"navbar": {
       "process": "Procesamiento de Atestado",
@@ -174,10 +174,10 @@
   },
   "en": {
     "home": {
-      "title": "Graphical Report Qualifier",
-      "description": "Legal support tool that processes police reports and RDF graphs to automatically qualify applicable legal articles.",
-      "btn_process": "AI Report Processing",
-      "btn_visualize": "Summary & Results Visualization"
+      "title": "Ontology-based legal support tool for the classification of property-crime police reports",
+      "description": "Supporting judges and prosecutors with explainable legal classifications",
+      "btn_process": "Process report",
+      "btn_visualize": "Report Summary & Classification"
     },
     "common": {
       "back": "Back",
@@ -202,10 +202,10 @@
       }
     },
     "atestados": {
-      "principalTitle": "AI-powered Report Processing",
-      "subtittle": "Upload a document (PDF/DOCX) to extract entities, generate graphs, and import them into Neo4j.",
-      "title": "AI Report Processing",
-      "subtitle": "Upload a document (PDF/DOCX) to extract entities, generate graphs, and import to Neo4j.",
+      "principalTitle": "Ontology- and LLM-based Report Processing",
+      "subtittle": "Upload a document (PDF or DOCX) to perform entity extraction, graph generation, and Neo4j import.",
+      "title": "Process report",
+      "subtitle": "Upload a document (PDF or DOCX) to perform entity extraction, graph generation, and Neo4j import.",
       "steps": {
         "step1": "Select",
         "step2": "Process",
@@ -217,7 +217,7 @@
         "select": "Select file",
         "process": "Process document",
         "download": "Download graph",
-        "infer": "Infer TTLs graph",
+        "infer": "Apply reasoning",
         "import": "Import to Neo4j",
         "download_tooltip": "To streamline graph generation testing and importing into Neo4j, upload a processing JSON file"
       },
@@ -233,7 +233,7 @@
         "actions": {
           "process": "Process Document",
           "download": "Download RDF Graph",
-          "infer": "Infer TTLS Graph",
+          "infer": "Apply reasoning",
           "import": "Neo4j Import"
         }
       },
@@ -252,8 +252,8 @@
       }
     },
     "analizador": {
-      "title": "Summary & Results Visualization",
-      "subtitle": "Upload a document (PDF/DOCX) to reference the report, visualize graph summaries, and analysis results.",
+      "title": "Report Summary & Classification",
+      "subtitle": "Upload a document (PDF or DOCX) to view supporting sentences for extracted facts and the report summary and classification.",
       "steps": {
         "step1": "Select file",
         "step2": "Reference report",
@@ -263,7 +263,7 @@
       "btns": {
         "select": "Select file",
         "references": "View Sources",
-        "summary": "Report Summary",
+        "summary": "View Report Summary",
         "results": "Report Results"
       },
       "preview": {
@@ -338,11 +338,11 @@
       "adjust": "Adjust"
     },
 	"footer": {
-      "copyright": "© 2026 University of Malaga"
+      "copyright": "2026 University of Malaga"
     },
 	"navbar": {
       "process": "Report Processing",
-      "visualize": "Summary & Results Visualization"
+      "visualize": "Report Summary & Classification"
     }
   }
 }

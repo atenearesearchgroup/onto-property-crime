@@ -22,6 +22,7 @@ Sigue estos pasos para desplegar el entorno desde cero:
 ### 2. Clonar el repositorio
 ```bash
 git clone https://github.com/fjnavarrete2/ReportGraphQualifier.git
+git clone https://github.com/atenearesearchgroup/onto-property-crime/ReportGraphQualifier.git
 cd ReportGraphQualifier
 
 * Activación y arranque de los módulos del docker

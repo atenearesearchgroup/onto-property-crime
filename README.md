@@ -2,8 +2,6 @@
 
 **onto-property-crime** is an ecosystem developed for **Atenea Research Group** focused on the management and judicial classification of police reports guided by ontology and knowledge graphs. The system extracts semantic data, stores it in graphs, and provides a visual interface for technical and legal analysis.
 
-**onto-property-crime** is an ecosystem developed for the **Atenea Research Group** focused on the management and qualification of knowledge graphs. The system allows for semantic data ingestion, its storage in graphs, and a visual interface for its analysis.
-
 ## 🏗️ System Architecture
 
 The project is fully dockerized and consists of:

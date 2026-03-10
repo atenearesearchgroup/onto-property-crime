@@ -50,4 +50,4 @@ reportgraphqualifier_frontend_1   docker-entrypoint.sh npm r ...   Up      0.0.0
 
 ## 📝 SoftwareX Note to Reviewers
 
-> **Important Note:** In order to activate the information extraction module, reviewers must request the `OPENROUTER_API_KEY` for the `backend/.env` file by contacting **xxx@xxxx.xx** prior to using the tool.
+> **Important Note:** In order to activate the information extraction module, reviewers must request the `OPENROUTER_API_KEY` for the `backend/.env` file by contacting **franciscoj.navarrete@uma.es** prior to using the tool.

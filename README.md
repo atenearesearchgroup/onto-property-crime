@@ -22,7 +22,7 @@ Follow these steps to deploy the environment from scratch:
 ### Clone the repository
 ```
 git clone https://github.com/atenearesearchgroup/onto-property-crime.git
-cd ReportGraphQualifier
+cd onto-property-crime
 ```
 
 * Activation and startup of the docker modules

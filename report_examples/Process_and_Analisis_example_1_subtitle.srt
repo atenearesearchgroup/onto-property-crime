@@ -1,0 +1,51 @@
+1
+00:00:15,000 --> 00:00:18,000
+First of all, the police report will be processed.
+
+2
+00:00:19,000 --> 00:00:30,000
+Select the report and the data extraction process will begin; this takes a few minutes. Specifically, extracting this report takes 3 minutes.
+
+3
+00:03:42,000 --> 00:03:45,000
+Once the extraction process is complete, the first intermediate file is downloaded.
+
+4
+00:04:01,000 --> 00:04:04,000
+This JSON file, which stores all the extracted entities and relationships, allows the entire process of generating graphs and importing them into Neo4j to be reproduced without the need to run the extraction process again.
+
+5
+00:04:10,000 --> 00:04:13,000
+The RDF graph is then generated using the extracted information, and the file is downloaded. The status of the running processes can be viewed in the control panel.
+
+6
+00:04:42,000 --> 00:04:45,000
+At this point, the inferred graph is generated; this will be used to populate the Neo4j knowledge graph database.
+
+7
+00:05:01,000 --> 00:05:04,000
+This latest feature of incident report processing converts the inferred graph into a labeled property graph and uploads it to a Neo4j database. This transformation enables graph decoration to support explainability in the computation of article applicability probabilities.
+
+8
+00:05:15,000 --> 00:05:18,000
+The legal analysis workflow is now available. First, select the report to be analysed. Please note that this workflow is intended for legal professionals.
+
+9
+00:05:23,000 --> 00:05:26,000
+The View sources function displays the report text with highlighted source sentences from which the data were extracted, ensuring traceability to the original report.
+
+10
+00:05:38,000 --> 00:05:41,000
+The reference numbers attached to each source sentence provide tooltips displaying the corresponding RDF triples, enabling legal practitioners to validate the extracted data.
+
+11
+00:05:42,000 --> 00:05:46,000
+The View Report Summary function provides a dual view interface displaying the inferred graph and a tabular representation, allowing legal practitioners to explore the data.
+
+12
+00:07:05,000 --> 00:07:09,000
+Judges and prosecutors can compare the enhanced police report with the extracted entities and relationships, thereby facilitating traceability and transparency.
+
+13
+00:07:45,000 --> 00:07:48,000
+The View Report Results function displays the article ranking produced, based on the applicability probability derived from the presence or absence of required facts. Color-coded annotations in both the graph and tabular views highlight these facts to support explainability.

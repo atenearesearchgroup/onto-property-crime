@@ -1,6 +1,6 @@
 services:
   database:
-    image: neo4j:latest
+    image: neo4j:5.25
     ports:
       - "7474:7474" # Interfaz HTTP (Browser)
       - "7687:7687" # Protocolo Bolt para Python

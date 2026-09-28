@@ -7,6 +7,7 @@ backend/__pycache__/
 backend/*.py[cod]
 backend/.venv/
 backend/.env
+.env
 
 
 # Node/React

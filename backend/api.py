@@ -1,7 +1,7 @@
 # Añadir estas importaciones al inicio de tu archivo
 import tempfile
 import json
-import datetime
+from datetime import datetime
 import time
 from fastapi import APIRouter, FastAPI, File, Form, Response, UploadFile, HTTPException, Query, BackgroundTasks
 from platformdirs import user_downloads_path
@@ -534,6 +534,11 @@ async def generar_rdfG(data: ListaAnalisis):
     try:
         nombre_grafo = data.nombre_grafo
         print(f"\n📌generar_rdfG - data: {nombre_grafo}")
+
+        inicio = datetime.now()
+        ha = inicio.strftime("%H:%M:%S.%f")[:-3]
+        print(f"\n⏳ {ha} Inicio generar_rdfG")
+
         data_dict = data.model_dump()
         nombre_archivo = crear_rdf2(data_dict.get("respuestas",[]), data_dict.get("nombre_grafo","AtestadoPrueba"))
   
@@ -541,6 +546,10 @@ async def generar_rdfG(data: ListaAnalisis):
         ruta_completa = os.path.join(user_downloads_path(), nombre_archivo)
         rdf_file = open(ruta_completa, "rb")
         print(f"\n📌generar_rdfG - ruta_completa:  {ruta_completa} ")
+
+        fin = datetime.now()
+        ha = fin.strftime("%H:%M:%S.%f")[:-3]
+        print(f"\n⏳ {ha} - Fin generar_rdfG Tiempo transcurrido: {tiempo_transcurrido2(inicio, fin)}")
 
         return StreamingResponse(
             rdf_file,
@@ -654,6 +663,10 @@ async def inferir_grafo_ttls(data: ListaAnalisis):
         3. Transformar rdf a ttls y añadir referencias a objetos
         4. Devolver un fichero ttls para el 'grafo' recibido."""
     try:
+        inicio = datetime.now()
+        ha = inicio.strftime("%H:%M:%S.%f")[:-3]
+        print(f"\n⏳ {ha} Inicio inferir_grafo_ttls")
+
         # 1. Generar un fichero rdf
         nombre_grafo = data.nombre_grafo
         print(f"\n📌inferir_grafo_ttls - tipo - data:  {type(data)} {nombre_grafo}")
@@ -683,11 +696,15 @@ async def inferir_grafo_ttls(data: ListaAnalisis):
             print(f"\n📌inferir_grafo_ttls - generar - {nombre_grafo}.ttl")
             content_file = open(path_inds, "rb")
             print(f"\n📌generar_rdfG - ruta_completa:  {ruta_completa} ")
+            fin = datetime.now()
+            ha = fin.strftime("%H:%M:%S.%f")[:-3]
+            print(f"\n⏳ {ha} - Fin inferir_grafo_ttls Tiempo transcurrido: {tiempo_transcurrido2(inicio, fin)}")
             return StreamingResponse(
                 content_file,
                 media_type="application/xml",
                 headers={"Content-Disposition": f"attachment; filename={nombre_grafo}.ttl"}
             )
+        
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -977,6 +994,11 @@ async def carga_neo4j(
     en la primera llamada a este servicio.
     """
 
+    inicio = datetime.now()
+    ha = inicio.strftime("%H:%M:%S")
+    print(f"\n⏳ {ha} Inicio cargaNeo4j")
+
+
     # 1. Guardar el archivo recibido temporalmente para que Neo4j lo lea
     # Docker environtment
     temp_dir =os.getenv("ONTOLOGY_PATH")
@@ -1047,6 +1069,10 @@ async def carga_neo4j(
             print("🎲 Paso 5: Calculando probabilidades de aplicación...")
             relaciones_prob = neo4j_client.decorate_probabilities(name, l_articles)
             # relaciones_prob = 0
+
+            fin = datetime.now()
+            ha = fin.strftime("%H:%M:%S")
+            print(f"\n⏳ {ha} - Fin cargaNeo4j Tiempo transcurrido: {tiempo_transcurrido(inicio, fin)}")
             
             return {
                 "status": "success",
@@ -1065,6 +1091,8 @@ async def carga_neo4j(
             }
         else:
             raise HTTPException(status_code=500, detail="Error en Neosemantics (KO)")
+        
+    
 
     except Exception as e:
         print(f"❌ Error en cargaNeo4j: {str(e)}")
@@ -1076,6 +1104,8 @@ async def carga_neo4j(
         if os.path.exists(temp_path): 
             os.remove(temp_path)
             print(f"\n📌carga_neo4j - Borrar - {temp_path}")
+
+    
     
 
 @app.post("/procesarReferenciasBase/")
@@ -1441,7 +1471,41 @@ async def recuperar_tuplas_grafo_html(root_name: str = Form(...), article: str =
         print(f"Error en recuperarTuplasGrafo: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+def tiempo_transcurrido(inicio: datetime, fin: datetime):
+    """
+    Calcula horas, minutos y segundos entre dos objetos datetime.
+    """
+    # Calculamos la diferencia (esto devuelve un objeto timedelta)
+    diferencia = fin - inicio
+    
+    # Extraemos el total de segundos
+    segundos_totales = int(diferencia.total_seconds())
+    
+    # Calculamos horas, minutos y segundos
+    horas, resto = divmod(segundos_totales, 3600)
+    minutos, segundos = divmod(resto, 60)
+    
+    return f"{horas}:{minutos}:{segundos}"
 
+def tiempo_transcurrido2(inicio: datetime, fin: datetime) -> str:
+    """
+    Calcula horas, minutos, segundos y milisegundos entre dos objetos datetime.
+    """
+    # Calculamos la diferencia (devuelve un objeto timedelta)
+    diferencia = fin - inicio
+    
+    # Extraemos el total de segundos como entero para H, M, S
+    segundos_totales = int(diferencia.total_seconds())
+    
+    # Calculamos horas, minutos y segundos
+    horas, resto = divmod(segundos_totales, 3600)
+    minutos, segundos = divmod(resto, 60)
+    
+    # Extraemos los milisegundos desde los microsegundos del timedelta
+    milisegundos = int(diferencia.microseconds / 1000)
+    
+    # Formateamos con ceros a la izquierda (:02d para H,M,S y :03d para MS)
+    return f"{horas:02d}:{minutos:02d}:{segundos:02d}.{milisegundos:03d}"
 
 def generar_documento_tablas_azul(relaciones: List[Tuple], elementos: List[Tuple], article_name: str = None) -> str:
     # Determinar si hay 4 columnas (cuando hay referencia) o 3

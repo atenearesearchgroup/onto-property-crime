@@ -38,7 +38,7 @@ services:
       
       # LLM PARAMETERS
       - OPENROUTER_URL=https://openrouter.ai/api/v1
-      - DEFAULT_LLM=openai/gpt-5.2-chat
+      - DEFAULT_LLM=openai/chat-latest
 
         # ONTOLOGY PARAMETERS
       - ROOT_CLASS=Report

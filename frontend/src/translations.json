@@ -115,7 +115,7 @@
       "loading": {
         "references": "Descargando fuentes...",
         "summary": "Generando resumen de tuplas desde el grafo...",
-        "results": "Calculando probabilidades de artículos..."
+        "results": "Calculando el ranking de artículos..."
       },
       "ok": {
         "references": "fuentes encontradas",
@@ -126,9 +126,9 @@
     },
     "resultado": {
       "title": "Resultados del atestado",
-      "prob_table_title": "Probabilidad de calificación por artículo",
+      "prob_table_title": "Ranking de calificación por artículo",
       "col_article": "Artículo",
-      "col_prob": "Probabilidad",
+      "col_prob": "Ranking",
       "col_uncert": "Incertidumbre",
       "col_props": "Características",
       "col_summary": "Resumen",
@@ -308,9 +308,9 @@
     },
     "resultado": {
       "title": "Report Results",
-      "prob_table_title": "Qualification probability per article",
+      "prob_table_title": "Article ranking",
       "col_article": "Article",
-      "col_prob": "Probability",
+      "col_prob": "Ranking",
       "col_uncert": "Uncertainty",
       "col_props": "Characteristics",
       "col_summary": "Summary",
